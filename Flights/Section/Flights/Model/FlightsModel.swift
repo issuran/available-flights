@@ -20,12 +20,18 @@ struct TripModel: Codable {
 }
 
 struct DateTripModel: Codable {
-    let dateOut: Date
+    let dateOut: String
     let flights: [FlightModel]
+    
+    public var dateoutDate: Date? {
+        get {
+            return DateFormatter.iso3339.date(from: dateOut)
+        }
+    }
 }
 
 struct FlightModel: Codable {
-    let time: [Date]
+    let time: [String]
     let regularFare: RegularFare?
     let flightNumber: String
 }

@@ -7,36 +7,52 @@
 
 import Foundation
 
+protocol FlightsViewModelProvider {
+    var flights: FlightsModel? { get }
+    var sections: [FlightsStateSection] { get }
+    
+    func dateFormatter(_ date: Date) -> String
+    func headerDateFormatter(_ date: Date) -> String
+    func requestFlights(searchModel: FlightsSearchModel?)
+    func processResult(_ result: Result<FlightsModel, Error>)
+    func processSuccess(flights: [TripModel])
+    func processFailure(error: Error)
+}
+
 enum FlightsStateSection {
     case loading
-    case content([TripModel])
+    case data(DateTripModel, String, String)
     case empty
     case error
 }
 
-class FlightsViewModel {
+class FlightsViewModel: FlightsViewModelProvider {
     
     // MARK: - Variables
     
-    private var flights: FlightsModel?
-    private var sections: [FlightsStateSection] = [.loading]
+    var flights: FlightsModel?
+    var sections: [FlightsStateSection] = [.loading]
     weak var delegate: FlightsViewModelViewDelegate?
     
     // MARK: - Public Methods
     
-    public func dateFormatter(_ date: Date) -> String {
+    init(_ delegate: FlightsViewController) {
+        self.delegate = delegate
+    }
+    
+    func dateFormatter(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: date)
     }
     
-    public func headerDateFormatter(_ date: Date) -> String {
+    func headerDateFormatter(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, MMM d, yyyy"
         return formatter.string(from: date)
     }
     
-    public func requestFlights(searchModel: FlightsSearchModel?) {
+    func requestFlights(searchModel: FlightsSearchModel?) {
         guard
             let origin = searchModel?.origin,
             let destination = searchModel?.destination,
@@ -64,9 +80,7 @@ class FlightsViewModel {
         task.resume()
     }
     
-    // MARK: - Private Methods
-    
-    private func processResult(_ result: Result<FlightsModel, Error>) {
+    func processResult(_ result: Result<FlightsModel, Error>) {
         switch result {
         case .success(let data):
             self.flights = data
@@ -78,7 +92,7 @@ class FlightsViewModel {
         }
     }
     
-    private func processSuccess(flights: [TripModel]) {
+    func processSuccess(flights: [TripModel]) {
         guard flights.count > 0 else {
             DispatchQueue.main.async {
                 self.sections = [.empty]
@@ -88,17 +102,33 @@ class FlightsViewModel {
             return
         }
         
-        guard let _ = flights.first?.dates else {
+        guard let dates = flights.first?.dates else {
             self.sections = [.empty]
             self.delegate?.updateState(self, sections: self.sections)
             return
         }
         
-        self.sections = [.content(flights)]
+        self.sections = []
+            
+        dates.forEach { (dateTrip) in
+            if dateTrip.flights.count > 0 {
+                self.sections.append(.data(dateTrip, flights.first?.originName ?? "", flights.first?.destinationName ?? ""))
+            }
+        }
+        
+        guard sections.count > 0 else {
+            DispatchQueue.main.async {
+                self.sections = [.empty]
+                self.delegate?.updateState(self, sections: self.sections)
+                return
+            }
+            return
+        }
+        
         self.delegate?.updateState(self, sections: self.sections)
     }
     
-    private func processFailure(error: Error) {
+    func processFailure(error: Error) {
         self.sections = [.error]
         self.delegate?.updateState(self, sections: self.sections)
         return

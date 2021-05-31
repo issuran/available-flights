@@ -20,7 +20,7 @@ final class FlightsViewController: BaseViewController {
     
     // MARK: - Variables
         
-    private lazy var viewModel = FlightsViewModel()
+    private var viewModel: FlightsViewModelProvider?
     private var searchModel: FlightsSearchModel?
     private var sections: [FlightsStateSection] = [.loading]
     
@@ -36,7 +36,7 @@ final class FlightsViewController: BaseViewController {
     // MARK: - Network Methods
     
     private func requestFlights() {
-        viewModel.requestFlights(searchModel: searchModel)
+        viewModel?.requestFlights(searchModel: searchModel)
     }
     
     @IBAction func dismissFlightsView(_ sender: Any) {
@@ -47,8 +47,8 @@ final class FlightsViewController: BaseViewController {
     
     private func setupView() {
         guard let model = searchModel else { return }
+        viewModel = FlightsViewModel(self)
         titleLabel.text = "\(model.flightHeader())"
-        viewModel.delegate = self
     }
     
     private func configureTableView() {
@@ -81,41 +81,38 @@ final class FlightsViewController: BaseViewController {
 
 extension FlightsViewController: UITableViewDelegate, UITableViewDataSource {
     func numberOfSections(in tableView: UITableView) -> Int {
-        if case let .content(trips) = sections[0] {
-            return trips.first?.dates.count ?? 0
-        }
-        return 1
+        return sections.count
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch sections[0] {
+        switch sections[section] {
         case .loading, .empty, .error:
             return 1
-        case .content(let trips):
-            return trips.first?.dates[section].flights.count ?? 0
+        case .data(let trip, _, _):
+            return trip.flights.count
         }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch sections[0] {
+        switch sections[indexPath.section] {
         case .loading:
             return buildLoadingCell(indexPath)
-        case .content(let trips):
-            let trip = trips.first
-            guard let flight = trips.first?.dates[indexPath.section].flights[indexPath.row] else { return UITableViewCell() }
-            return buildFlightCell(indexPath, flight: flight, trip: trip)
         case .empty:
             return buildEmptyCell(indexPath)
         case .error:
             return buildErrorCell(indexPath)
+        case .data(let trip, let originName, let destinationName):
+            let flight = trip.flights[indexPath.row]
+            return buildFlightCell(indexPath, flight: flight, origin: originName, destination: destinationName)
         }
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if case let .content(trips) = sections[0] {
+        guard let viewModel = viewModel else { return nil}
+        if case let .data(trip, _, _) = sections[section] {
             
             guard
-                let date = trips.first?.dates[section].dateOut,
+                let date = trip.dateoutDate,
                 let header = tableView.dequeueReusableHeaderFooterView(withIdentifier: "FlightCellHeader") as? FlightCellHeader
             else { return UIView() }
             
@@ -128,10 +125,10 @@ extension FlightsViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        switch sections[0] {
+        switch sections[indexPath.section] {
         case .loading, .error, .empty:
             return 200.0
-        case .content:
+        case .data:
             return UITableView.automaticDimension
         }
     }
@@ -150,10 +147,10 @@ extension FlightsViewController {
         return cell
     }
     
-    private func buildFlightCell(_ indexPath: IndexPath, flight: FlightModel, trip: TripModel?) -> UITableViewCell {
+    private func buildFlightCell(_ indexPath: IndexPath, flight: FlightModel, origin: String, destination: String) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "FlightCell", for: indexPath) as? FlightCell else { return UITableViewCell() }
         
-        cell.configure(flight: flight, trip: trip)
+        cell.configure(flight: flight, origin: origin, destination: destination)
         
         return cell
     }

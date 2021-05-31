@@ -13,6 +13,8 @@
 		5200E2F526608498000795E7 /* FlightCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = 5200E2F326608498000795E7 /* FlightCell.xib */; };
 		5200E2F926608CC2000795E7 /* FlightsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5200E2F826608CC2000795E7 /* FlightsModel.swift */; };
 		5200E2FD266090D2000795E7 /* FlightsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5200E2FC266090D2000795E7 /* FlightsViewModel.swift */; };
+		5201662A266517EC0068EBD6 /* DateFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52016629266517EC0068EBD6 /* DateFormatter.swift */; };
+		52016643266589A80068EBD6 /* SelectAirportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52016642266589A80068EBD6 /* SelectAirportViewModel.swift */; };
 		52270987265EF2DE007CC258 /* AlertViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52270986265EF2DE007CC258 /* AlertViewController.swift */; };
 		5227098B265F2DD2007CC258 /* AirportsModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5227098A265F2DD2007CC258 /* AirportsModel.swift */; };
 		5227098F265F3C96007CC258 /* SelectAirportViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5227098E265F3C96007CC258 /* SelectAirportViewController.swift */; };
@@ -44,6 +46,8 @@
 		5200E2F326608498000795E7 /* FlightCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = FlightCell.xib; sourceTree = "<group>"; };
 		5200E2F826608CC2000795E7 /* FlightsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlightsModel.swift; sourceTree = "<group>"; };
 		5200E2FC266090D2000795E7 /* FlightsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlightsViewModel.swift; sourceTree = "<group>"; };
+		52016629266517EC0068EBD6 /* DateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatter.swift; sourceTree = "<group>"; };
+		52016642266589A80068EBD6 /* SelectAirportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectAirportViewModel.swift; sourceTree = "<group>"; };
 		52270986265EF2DE007CC258 /* AlertViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlertViewController.swift; sourceTree = "<group>"; };
 		5227098A265F2DD2007CC258 /* AirportsModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AirportsModel.swift; sourceTree = "<group>"; };
 		5227098E265F3C96007CC258 /* SelectAirportViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectAirportViewController.swift; sourceTree = "<group>"; };
@@ -141,9 +145,18 @@
 			path = ViewModel;
 			sourceTree = "<group>";
 		};
+		52016641266589990068EBD6 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				52016642266589A80068EBD6 /* SelectAirportViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		5227098D265F3C7F007CC258 /* SelectAirport */ = {
 			isa = PBXGroup;
 			children = (
+				52016641266589990068EBD6 /* ViewModel */,
 				52270993265F3D39007CC258 /* Cell */,
 				52270992265F3D30007CC258 /* ViewController */,
 			);
@@ -201,6 +214,7 @@
 				52270986265EF2DE007CC258 /* AlertViewController.swift */,
 				5200E2E7266077AC000795E7 /* UIColor+Extension.swift */,
 				5236E34E2663D38000C2F8C6 /* Network+Utils.swift */,
+				52016629266517EC0068EBD6 /* DateFormatter.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -335,8 +349,10 @@
 				524A3C57265DDC5A00030544 /* FlightsSearchModel.swift in Sources */,
 				524A3C60265DDE7400030544 /* SearchViewModel.swift in Sources */,
 				5200E2E8266077AC000795E7 /* UIColor+Extension.swift in Sources */,
+				5201662A266517EC0068EBD6 /* DateFormatter.swift in Sources */,
 				52270987265EF2DE007CC258 /* AlertViewController.swift in Sources */,
 				52656640265DB18100C249B5 /* AppDelegate.swift in Sources */,
+				52016643266589A80068EBD6 /* SelectAirportViewModel.swift in Sources */,
 				52270996265F3D4E007CC258 /* AirportCell.swift in Sources */,
 				52656657265DDA1500C249B5 /* SearchViewController.swift in Sources */,
 				5200E2F426608498000795E7 /* FlightCell.swift in Sources */,

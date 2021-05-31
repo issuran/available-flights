@@ -59,22 +59,22 @@ class FlightCell: UITableViewCell {
     
     // MARK: - Public Methods
     
-    public func configure(flight: FlightModel, trip: TripModel?) {
+    public func configure(flight: FlightModel, origin: String, destination: String) {
         var timeDeparture: Date? = nil
         var timeArrive: Date? = nil
         
         if flight.time.count > 1 {
-            timeDeparture = flight.time[0]
-            timeArrive = flight.time[1]
+            timeDeparture =  DateFormatter.iso3339.date(from: flight.time[0])
+            timeArrive = DateFormatter.iso3339.date(from: flight.time[1])
         }
         
         flightNumberLabel.text = flight.flightNumber
         
-        stationDepartureLabel.text = trip?.originName
+        stationDepartureLabel.text = origin
         timeDepartureLabel.text = dateFormatter(timeDeparture)
         
         timeArriveLabel.text = dateFormatter(timeArrive)
-        stationArriveLabel.text = trip?.destinationName
+        stationArriveLabel.text = destination
         
         fareLabel.text = calculeFare(flight.regularFare?.fares)
     }

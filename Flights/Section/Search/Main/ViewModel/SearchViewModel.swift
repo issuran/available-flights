@@ -7,15 +7,25 @@
 
 import Foundation
 
-class SearchViewModel {
+protocol SearchViewModelProvider {
+    var adultsPassenger: [Int] { get }
+    var teenPassenger: [Int] { get }
+    var childrenPassenger: [Int] { get }
+    var airports: AirportsModel? { get }
+    
+    func dateFormatter(_ date: Date) -> String
+    func requestAirports(completion: @escaping (Result<Void, Error>) -> Void)
+}
+
+class SearchViewModel: SearchViewModelProvider {
     
     // MARK: - Variables
     
-    let adultsPassenger = [1, 2, 3, 4, 5, 6]
-    let teenPassenger = [0, 1, 2, 3, 4, 5, 6]
-    let childrenPassenger = [0, 1, 2, 3, 4, 5, 6]
+    internal var adultsPassenger: [Int] = [1, 2, 3, 4, 5, 6]
+    internal var teenPassenger: [Int] = [0, 1, 2, 3, 4, 5, 6]
+    internal var childrenPassenger: [Int] = [0, 1, 2, 3, 4, 5, 6]
     
-    var airports: AirportsModel?
+    internal var airports: AirportsModel?
     
     // MARK: - Public Methods
     

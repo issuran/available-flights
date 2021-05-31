@@ -29,7 +29,7 @@ class SearchViewController: BaseViewController {
     
     // MARK: - Variables
     
-    private lazy var viewModel = SearchViewModel()
+    private var viewModel: SearchViewModelProvider?
     private lazy var searchModel = FlightsSearchModel()
     
     let adultsPicker = UIPickerView()
@@ -43,6 +43,7 @@ class SearchViewController: BaseViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        viewModel = SearchViewModel()
         setupView()
         setupDelegates()
     }
@@ -72,7 +73,7 @@ class SearchViewController: BaseViewController {
         if segue.identifier == "SearchViewControllerToSelectAirportViewController",
            let vc = segue.destination as? SelectAirportViewController,
            let origin = sender as? OriginAirport,
-           let airports = viewModel.airports {
+           let airports = viewModel?.airports {
             vc.configure(airports, origin: origin, delegate: self)
         }
         
@@ -88,7 +89,8 @@ class SearchViewController: BaseViewController {
         let alert = AlertViewController()
         
         self.present(alert.alertLoading(), animated: true)
-        viewModel.requestAirports { result in
+        viewModel?.requestAirports { [weak self] result in
+            guard let self = self else { return }
             DispatchQueue.main.async {
                 self.dismiss(animated: true) {
                     if case let .failure(error) = result { self.handleAlerts(error.localizedDescription) }
@@ -116,9 +118,9 @@ class SearchViewController: BaseViewController {
         dateTextField.attributedPlaceholder = NSAttributedString(string: "Select date",
                                                                  attributes: [NSAttributedString.Key.foregroundColor: UIColor.gray])
         
-        adultsTextField.text = "\(viewModel.adultsPassenger.first ?? 1)"
-        teenTextField.text = "\(viewModel.teenPassenger.first ?? 0)"
-        childrenTextField.text = "\(viewModel.childrenPassenger.first ?? 0)"
+        adultsTextField.text = "\(viewModel?.adultsPassenger.first ?? 1)"
+        teenTextField.text = "\(viewModel?.teenPassenger.first ?? 0)"
+        childrenTextField.text = "\(viewModel?.childrenPassenger.first ?? 0)"
         
         adultsTextField.inputView = adultsPicker
         teenTextField.inputView = teenPicker
@@ -216,13 +218,13 @@ class SearchViewController: BaseViewController {
     
     @objc func doneDateButtonTapped() {
         self.dateTextField.resignFirstResponder()
-        dateTextField.text = viewModel.dateFormatter(datePicker.date)
+        dateTextField.text = viewModel?.dateFormatter(datePicker.date)
         searchModel.date = datePicker.date
         updateButton()
     }
     
     @objc func datePickerChanged(sender: UIDatePicker) {
-        dateTextField.text = viewModel.dateFormatter(sender.date)
+        dateTextField.text = viewModel?.dateFormatter(sender.date)
         searchModel.date = sender.date
         updateButton()
     }
@@ -231,7 +233,8 @@ class SearchViewController: BaseViewController {
         scrollView.refreshControl?.beginRefreshing()
         clearFields()
         
-        viewModel.requestAirports { result in
+        viewModel?.requestAirports { [weak self] result in
+            guard let self = self else { return }
             DispatchQueue.main.async {
                 self.scrollView.refreshControl?.endRefreshing()
                 if case let .failure(error) = result { self.handleAlerts(error.localizedDescription) }
@@ -252,6 +255,7 @@ extension SearchViewController: UIPickerViewDelegate, UIPickerViewDataSource {
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
+        guard let viewModel = viewModel else { return 0 }
         switch section {
         case .adults:
             return viewModel.adultsPassenger.count
@@ -263,6 +267,7 @@ extension SearchViewController: UIPickerViewDelegate, UIPickerViewDataSource {
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
+        guard let viewModel = viewModel else { return "" }
         switch section {
         case .adults:
             return "\(viewModel.adultsPassenger[row])"
@@ -274,6 +279,7 @@ extension SearchViewController: UIPickerViewDelegate, UIPickerViewDataSource {
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        guard let viewModel = viewModel else { return }
         switch section {
         case .adults:
             adultsTextField.text = "\(viewModel.adultsPassenger[row])"

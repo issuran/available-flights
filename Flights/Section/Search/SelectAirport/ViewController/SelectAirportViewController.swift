@@ -31,12 +31,7 @@ final class SelectAirportViewController: BaseViewController {
     
     // MARK: - Variables
     
-    private var airports: AirportsModel?
-    private var orderedAirports: [AirportModel] = []
-    private lazy var filteredAirports = [AirportModel]()
-    private var origin: OriginAirport = .origin
-    private var searchSection: [SearchStateSection] = []
-    
+    private var viewModel: SelectAirportViewModelProvider?
     private weak var delegate: SelectAirportDelegate?
     
     override func viewDidLoad() {
@@ -50,11 +45,12 @@ final class SelectAirportViewController: BaseViewController {
     
     private func setupView() {
         airportTextField.autocorrectionType = .no
-        switch origin {
+        switch viewModel?.origin {
         case .origin:
             titleLabel.text = "Select station origin"
         case .destination:
             titleLabel.text = "Select station destination"
+        default: break
         }
         
         airportTextField.attributedPlaceholder = NSAttributedString(string: "Search station",
@@ -98,23 +94,9 @@ final class SelectAirportViewController: BaseViewController {
         guard let textField = notification.object as? UITextField else { return }
         
         if let text = textField.text, !text.isEmpty {
-            filteredAirports = orderedAirports.filter({ (airport) -> Bool in
-                let filterText = text.lowercased().folding(options: .diacriticInsensitive, locale: nil)
-                let concatenedWord = "\(airport.code ?? "") \(airport.countryName ?? "") \(airport.name ?? "")"
-                return concatenedWord
-                    .folding(options: .diacriticInsensitive, locale: nil)
-                    .lowercased()
-                    .contains(filterText)
-            })
-            
-            if filteredAirports.count > 0 {
-                searchSection = [.content(filteredAirports)]
-            } else {
-                searchSection = [.empty]
-            }
+            viewModel?.filterAirports(text)
         } else {
-            filteredAirports = orderedAirports
-            searchSection = [.content(filteredAirports)]
+            viewModel?.resetAirportsFiltered()
         }
         
         tableView.reloadData()
@@ -133,17 +115,15 @@ final class SelectAirportViewController: BaseViewController {
     // MARK: - Public Methods
     
     public func configure(_ airports: AirportsModel, origin: OriginAirport, delegate: SelectAirportDelegate) {
-        self.orderedAirports = airports.stations.sorted { ($0.countryName ?? "", $0.name ?? "") < ($1.countryName ?? "", $1.name ?? "") }
-        self.origin = origin
+        viewModel = SelectAirportViewModel(airports, origin: origin)
         self.delegate = delegate
-        self.filteredAirports = orderedAirports
-        self.searchSection = [.content(filteredAirports)]
     }
 }
 
 extension SelectAirportViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch searchSection[section] {
+        guard let viewModel = viewModel else { return 0 }
+        switch viewModel.section(section) {
         case .content(let airports):
             return airports.count
         case .empty:
@@ -152,7 +132,8 @@ extension SelectAirportViewController: UITableViewDelegate, UITableViewDataSourc
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch searchSection[indexPath.section] {
+        guard let viewModel = viewModel else { return UITableViewCell() }
+        switch viewModel.section(indexPath.section) {
         case .content(let airports):
             let airport = airports[indexPath.row]
             return buildAirportCell(indexPath, airport: airport)
@@ -163,13 +144,13 @@ extension SelectAirportViewController: UITableViewDelegate, UITableViewDataSourc
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: false)
-        
-        switch searchSection[indexPath.section] {
+        guard let viewModel = viewModel else { return }
+        switch viewModel.section(indexPath.section) {
         case .content(let airports):
             let airport = airports[indexPath.row]
             
             dismiss(animated: true) {
-                self.delegate?.selectedAirport(self, origin: self.origin, airport: airport)
+                self.delegate?.selectedAirport(self, origin: self.viewModel?.selectedStation() ?? .origin, airport: airport)
             }
         case .empty:
             return
@@ -177,7 +158,8 @@ extension SelectAirportViewController: UITableViewDelegate, UITableViewDataSourc
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        switch searchSection[indexPath.section] {
+        guard let viewModel = viewModel else { return 0.0 }
+        switch viewModel.section(indexPath.section) {
         case .empty:
             return 200.0
         case .content:
