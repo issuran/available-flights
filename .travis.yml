@@ -1,0 +1,9 @@
+os: osx
+osx_image: xcode12.4
+language: objective-c
+script:
+  - set -o pipefail && xcodebuild -project "Flights.xcodeproj" -scheme "Flights" -destination "platform=iOS Simulator,OS=14.4,name=iPhone 11" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO ONLY_ACTIVE_ARCH=NO | xcpretty
+
+branches:
+ only:
+ - main
